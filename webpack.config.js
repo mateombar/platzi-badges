@@ -2,6 +2,9 @@ const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const TerserJSPlugin = require('terser-webpack-plugin');
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const AddAssetHtmlPlugin = require('add-asset-html-webpack-plugin');
 module.exports = {
     entry: {
@@ -9,9 +12,12 @@ module.exports = {
     },
     output: {
         path: path.resolve(__dirname, 'dist'),  //__dirname its a shorthand that brings the actual path directory of this file
-        filename: 'js/[name].js',
+        filename: 'js/[name].[contenthash].js',
         publicPath: 'http://localhost:3001/',
         chunkFilename: 'js/[id].[chunkhash].js'
+    },
+    optimization: {
+        minimizer: [new TerserJSPlugin(), new OptimizeCSSAssetsPlugin()]
     },
     module: {
         rules: [
@@ -34,7 +40,9 @@ module.exports = {
                 use: {
                     loader: 'url-loader',
                     options: {
-                        limit: 1000
+                        limit: 1000,
+                        name: '[contenthash].[ext]',
+                        outputPath: 'assets'
                     }
                 },
             },
@@ -45,8 +53,8 @@ module.exports = {
     },
     plugins: [
         new MiniCssExtractPlugin({
-            filename: 'css/[name].css',
-            chunkFilename: 'css/[id].css'
+            filename: 'css/[name].[contenthash].css',
+            chunkFilename: 'css/[id].[contenthash].css'
         }),
         new HtmlWebpackPlugin({
             template: path.resolve(__dirname, 'public/index.html'),
@@ -59,6 +67,9 @@ module.exports = {
             filepath: path.resolve(__dirname, 'dist/js/*.dll.js'),
             outputPath: 'js',
             publicPath: 'http://localhost:3001/js'
+        }),
+        new CleanWebpackPlugin({
+            cleanOnceBeforeBuildPatterns: ["**/app.*"]
         })
     ],
 }
